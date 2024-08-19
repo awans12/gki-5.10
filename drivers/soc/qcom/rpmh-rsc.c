@@ -639,6 +639,12 @@ int rpmh_rsc_send_data(struct rsc_drv *drv, const struct tcs_request *msg)
 
 	spin_lock_irq(&drv->lock);
 
+	/* Controller is busy in 'solver' mode */
+	if (drv->in_solver_mode) {
+		spin_unlock_irq(&drv->lock);
+		return -EBUSY;
+	}
+
 	/* Wait forever for a free tcs. It better be there eventually! */
 	wait_event_lock_irq(drv->tcs_wait,
 			    (tcs_id = claim_tcs_for_req(drv, tcs, msg)) >= 0,
